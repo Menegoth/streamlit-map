@@ -39,7 +39,7 @@ selectState = st.selectbox(label="Select a state", options=states)
 
 #select a city to use for default pos
 selectedState = 0
-if selectedState:
+if selectState:
     selectedState = states.index(selectState)
 
 #create pydeck chart
