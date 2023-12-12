@@ -6,9 +6,9 @@ import pydeck as pdk
 import numpy as np
 
 #slider to default how many cities are shown
-cities_slider = st.slider(label="How many datapoints?", min_value=1, max_value=27, value=27)
-if cities_slider:
-    default = cities_slider
+states_slider = st.slider(label="How many datapoints?", min_value=1, max_value=27, value=27)
+if states_slider:
+    default = states_slider
 
 # open csv file 
 rows = []
@@ -16,7 +16,7 @@ with open('./estados.csv', 'r', encoding='utf-8') as file:
     csvreader = csv.reader(file)
     header = next(csvreader)
     #takes in specified datapoints
-    for row in islice(csvreader, cities_slider):
+    for row in islice(csvreader, states_slider):
         rows.append(row)
 
 
