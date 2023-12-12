@@ -12,7 +12,7 @@ if states_slider:
 
 # open csv file 
 rows = []
-with open('./estados.csv', 'r', encoding='utf-8') as file:
+with open('estados.csv', 'r', encoding='utf-8') as file:
     csvreader = csv.reader(file)
     header = next(csvreader)
     #takes in specified datapoints
