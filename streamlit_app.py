@@ -5,80 +5,79 @@ from itertools import islice
 import pydeck as pdk
 import numpy as np
 
-# open csv file
+#slider to default how many cities are shown
+cities_slider = st.slider(label="How many datapoints?", min_value=1, max_value=27, value=27)
+if cities_slider:
+    default = cities_slider
+
+# open csv file 
 rows = []
-with open('./us_cities.csv', 'r') as file:
+with open('./estados.csv', 'r', encoding='utf-8') as file:
     csvreader = csv.reader(file)
     header = next(csvreader)
-    #takes in first 100 datapoints
-    for row in islice(csvreader, 100):
+    #takes in specified datapoints
+    for row in islice(csvreader, cities_slider):
         rows.append(row)
 
-coordinates = []
-for row in rows:
-    #places the coordinates at the front (wasnt working without this)
-    fixedCoords = row[-2:] + row[:-2] 
-    #changes coordinate values to floats
-    fixedCoords[0] = float(fixedCoords[0])
-    fixedCoords[1] = float(fixedCoords[1])
-    
-    #random number for height on map
-    fixedCoords.append(np.random.rand() * 1000)
 
-    coordinates.append(fixedCoords)
+for row in rows:
+    # #random number for height on map
+    row.append(np.random.rand() * 10000)
+
+    # change coordinates to floats
+    row[3] = float(row[3])
+    row[4] = float(row[4])
 
 # create dataframe
-df = pd.DataFrame(coordinates, columns=["lat", "lon", 'id', 'state_code', 'state_name', 'city_name', 'county_name', 'height'])
-st.write(df)
+df = pd.DataFrame(rows, columns=["codigo_uf", "uf", 'nome', 'lat', 'lon', 'regiao', 'height'])
+
+#create a city selector based on number of cities
+states = []
+for row in rows:
+    states.append(row[2])
+selectState = st.selectbox(label="Select a state", options=states)
+
+#select a city to use for default pos
+selectedState = 0
+if selectedState:
+    selectedState = states.index(selectState)
 
 #create pydeck chart
 st.pydeck_chart(pdk.Deck(
     map_style=None,
     initial_view_state=pdk.ViewState(
-        latitude=55.999722,
-        longitude=-161.207778,
-        zoom=7,
+        latitude=df.iloc[selectedState,3],
+        longitude=df.iloc[selectedState,4 ],
+        zoom=5,
         pitch=50,
     ),
     layers=[
-        #column layer with first 10 rows, elevation scale is larger than other one, diff color
+        #two column layers with different elevation scalings
         pdk.Layer(
             "ColumnLayer",
-            data=df[:10],
+            data=df,
             get_position=["lon", "lat"],
             get_elevation="height",
             elevation_scale=100,
-            radius=5000,
+            radius=50000,
             get_fill_color=[255, 0, 140],
             pickable=True,
         ),
         pdk.Layer(
             "ColumnLayer",
-            data=df[:10],
+            data=df,
             get_position=["lon", "lat"],
             get_elevation="height",
             elevation_scale=50,
-            radius=5000,
+            radius=50000,
             get_fill_color=[0, 255, 140],
-            pickable=True,
-        ),
-        #rest of the 90 datapoints
-        pdk.Layer(
-            "ColumnLayer",
-            data=df[10:],
-            get_position=["lon", "lat"],
-            get_elevation="height",
-            elevation_scale=50,
-            radius=5000,
-            get_fill_color=[0, 255, 255],
             pickable=True,
         )
     ],
     #show tooltip
     tooltip={"html":"<b>Longitude: </b> {lon} <br /> "
                     "<b>Latitude: </b>{lat} <br /> "
-                    "<b>State Code: </b>{state_code} <br /> "
-                    "<b>State: </b>{state_name} <br /> "
-                    "<b>City: </b>{city_name} <br /> "
-                    "<b>County: </b>{county_name} <br /> "}
+                    "<b>UF Code: </b>{uf} <br /> "
+                    "<b>State: </b>{nome} <br /> "
+                    "<b>Region: </b>{regiao} <br /> "}
 ))
